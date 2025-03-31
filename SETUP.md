@@ -14,8 +14,16 @@ Before you begin, ensure you have the following software installed on your syste
 ## Installation Steps
 
 ### 1. Clone or Download the Repository
+```bash
+git clone 
+```
 
+### 2. Navigate To The Project Directory
+```bash
+cd guidance-project
+```
 
-
-
-
+### 3. Run and Build the Docker Container
+```bash
+docker-compose up --build
+```
