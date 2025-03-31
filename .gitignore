@@ -1,0 +1,13 @@
+guidance-application/guidance_system.db
+guidance-application/sql/guidance_system.db
+guidance-application/results/*
+guidance-application/uploads/*
+guidance-application/venv
+guidance-client/node_modules
+guidance-client/.next
+guidance-client/.env
+guidance-client/.env.local
+guidance-client/.env.development.local
+guidance-client/.env.test.local
+guidance-client/.env.production.local
+
