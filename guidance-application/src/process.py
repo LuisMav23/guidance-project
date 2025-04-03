@@ -28,17 +28,20 @@ def upload_file(file, id, form_type):
         os.makedirs(type_save_folder)
     
     csv_content = stream.getvalue()
+    
     file_path =  os.path.join(type_save_folder, f'{id}.csv')
     with open(file_path, 'w', encoding='utf-8') as f:
         f.write(csv_content)
+    df = pd.read_csv(file_path)
+    df['Name'] = df['Name'].astype(str)
+    df.to_csv(file_path, index=False)
     return file_path
 
-
-def upload_results(results):
-    id = results['id']
-    form_type = results['type']
-    root_save_folder = 'results'
-
+def upload_student_data(df, id, form_type):
+    root_save_folder = 'student_data'
+    df_original = pd.read_csv(f'uploads/{form_type}/{id}.csv')
+    df_original['Cluster'] = df['Cluster']
+        
     if not os.path.exists(root_save_folder):
         os.makedirs(root_save_folder)
 
@@ -46,13 +49,35 @@ def upload_results(results):
     if not os.path.exists(type_save_folder):
         os.makedirs(type_save_folder)
 
+    file_path = os.path.join(type_save_folder, f'{id}.csv')
+    df_original.to_csv(file_path, index=False)
+
+    return file_path
+
+def upload_results(results):
+    id = results['id']
+    form_type = results['type']
+    root_save_folder = 'results'
+
+    # Create root directory if it doesn't exist
+    if not os.path.exists(root_save_folder):
+        os.makedirs(root_save_folder, exist_ok=True)
+
+    # Create type-specific directory if it doesn't exist
+    type_save_folder = os.path.join(root_save_folder, form_type)
+    if not os.path.exists(type_save_folder):
+        os.makedirs(type_save_folder, exist_ok=True)
+
     file_path = os.path.join(type_save_folder, f'{id}.json')
     
-    with open(file_path, 'w', encoding='utf-8') as f:
-        json.dump(results, f, ensure_ascii=False, indent=4)  # Convert dict to JSON string
-    
-    return file_path
-    
+    try:
+        with open(file_path, 'w', encoding='utf-8') as f:
+            json.dump(results, f, ensure_ascii=False, indent=4)
+        return file_path
+    except Exception as e:
+        print(f"Error saving results: {e}")
+        return None
+
 def summarize_answers(file_path):
     df = pd.read_csv(file_path)
     df = df.dropna(axis=0)
@@ -202,9 +227,18 @@ def get_uploaded_result_by_uuid(id, type):
     root_save_folder = 'results'
     type_save_folder = os.path.join(root_save_folder, type)
     file_path = os.path.join(type_save_folder, f'{id}.json')
-    with open(file_path, 'r', encoding='utf-8') as f:
-        data = json.load(f)
-    return data
+    
+    try:
+        if not os.path.exists(file_path):
+            print(f"File not found: {file_path}")
+            return None
+            
+        with open(file_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        return data
+    except Exception as e:
+        print(f"Error reading results: {e}")
+        return None
 
 
 

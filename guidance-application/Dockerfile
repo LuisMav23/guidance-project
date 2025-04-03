@@ -1,27 +1,23 @@
-FROM python:3.11-slim
+FROM python:3.11
 
+# Set working directory inside the container
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    libmariadb-dev \
-    pkg-config \
-    python3-dev \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy requirements first to leverage Docker cache
-COPY requirements.txt .
+# Copy dependency descriptor and install dependencies
+COPY requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of the application
-COPY . .
+# Copy the entire project directory into the container after dependencies are installed
+COPY . /app
 
-# Create directories for persistent data
-RUN mkdir -p /app/uploads /app/results
+# Define /app as a volume so that any saved files are persisted on the host
+VOLUME ["/app"]
 
-# Expose the port the app runs on
+# Expose port 5000 (default port for Flask)
 EXPOSE 5000
 
-# Command to run the application
-CMD ["python", "app.py"] 
+# Set environment variable to designate the Flask application entrypoint (adjust "app.py" as needed)
+ENV FLASK_APP=app.py
+
+# Run the Flask app, binding to all interfaces
+CMD ["flask", "run", "--host=0.0.0.0"]

@@ -1,6 +1,7 @@
 import sqlite3
 import os
-
+import pandas as pd
+import numpy as np
 DB_NAME = "guidance_system.db"
 
 def get_db_connection():
@@ -49,6 +50,7 @@ def create_db(password):
         uuid TEXT NOT NULL UNIQUE,
         name TEXT NOT NULL,
         username TEXT NOT NULL,
+        type TEXT CHECK(type IN ('ASSI-A', 'ASSI-C')) NOT NULL,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE
     )
@@ -240,4 +242,36 @@ def delete_record(uuid):
         print("SQLite Error:", err)
         cursor.close()
         close_db_connection(connection)
+        return False
+
+def get_student_data_by_uuid_and_name(uuid, name, form_type):
+    try:
+        df = pd.read_csv(f'student_data/{form_type}/{uuid}.csv')
+        df['Name'] = df['Name'].astype(str)
+        print(df['Name'].head())
+        df = df[df['Name'] == name]
+        print(len(df))
+        print(df.head())
+        student_data = {
+            'Name': name,
+            'Grade': int(df['Grade'].iloc[0]) if not df['Grade'].empty else None,
+            'Gender': df['Gender'].iloc[0] if not df['Gender'].empty else None,
+            'Cluster': int(df['Cluster'].iloc[0]) if not df['Cluster'].empty else None,
+            'Questions': {col: int(df[col].iloc[0]) if isinstance(df[col].iloc[0], np.int64) else df[col].iloc[0] 
+                         for col in df.columns if col not in ['Name', 'Grade', 'Gender', 'Cluster']}
+        }
+        return student_data
+    except Exception as e:
+        print("Error:", e)
+        return False
+
+def update_student_cluster(uuid,name,cluster,form_type):
+    try:
+        df = pd.read_csv(f'student_data/{form_type}/{uuid}.csv')
+        df['Name'] = df['Name'].astype(str)
+        df.loc[df['Name'] == name, 'Cluster'] = int(cluster)
+        df.to_csv(f'student_data/{form_type}/{uuid}.csv', index=False)
+        return True
+    except Exception as e:
+        print("Error:", e)
         return False

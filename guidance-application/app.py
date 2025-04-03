@@ -4,8 +4,8 @@ from flask import request, jsonify
 import hashlib
 from flask_cors import CORS
 
-from src.process import validate_dataset, summarize_answers, upload_file, load_data_and_preprocess, pca, upload_results, kmeans, get_uploaded_result_by_uuid, summarize_answer_per_cluster
-from src.db import create_db, get_db_connection, close_db_connection, authenticate, insert_user, insert_result_record, get_user_records, delete_record, test_db_connection, get_all_users, delete_user
+from src.process import validate_dataset, summarize_answers, upload_file, load_data_and_preprocess, pca, upload_results, kmeans, get_uploaded_result_by_uuid, summarize_answer_per_cluster, upload_student_data
+from src.db import get_student_data_by_uuid_and_name, create_db, get_db_connection, close_db_connection, authenticate, insert_user, insert_result_record, get_user_records, delete_record, test_db_connection, get_all_users, delete_user, update_student_cluster
 from src.classification import svm_classification, random_forest_classification, neural_network_classification
 
 import os
@@ -103,6 +103,19 @@ def delete_data_by_uuid(uuid):
     else:
         return jsonify({'message': 'Record deletion failed'}), 500
 
+@app.route('/api/student/data/<string:uuid>/<string:form_type>/<string:name>', methods=['GET'])
+def get_student_data_by_name(uuid, form_type, name):
+    result = get_student_data_by_uuid_and_name(uuid, name, form_type)
+    return jsonify(result), 200
+
+@app.route('/api/student/data/<string:uuid>/<string:form_type>/<string:name>/<string:cluster>', methods=['PUT'])
+def update_student_cluster_by_name(uuid, name, form_type, cluster):
+    result = update_student_cluster(uuid, name, cluster, form_type)
+    if result:
+        return jsonify({'message': 'Student cluster updated successfully'}), 200
+    else:
+        return jsonify({'message': 'Student cluster update failed'}), 500
+
 @app.route('/api/data', methods=['POST'])
 def fetch_data():
     if 'file' not in request.files:
@@ -114,7 +127,7 @@ def fetch_data():
         return jsonify({'message': 'No selected file'}), 400
     
     if file and file.filename.lower().endswith('.csv'):
-        id = str(uuid4())
+        uuid = str(uuid4())
         record_name = request.form.get('datasetName')
         form_type = request.form.get('kindOfData')
         user = request.form.get('user')
@@ -122,7 +135,7 @@ def fetch_data():
             print("Error: User not provided in form data")
             return jsonify({'message': 'User not found'}), 400
 
-        file_path = upload_file(file, id, form_type)
+        file_path = upload_file(file, uuid, form_type)
         summary = summarize_answers(file_path)
 
         df, df_questions_only, df_scaled = load_data_and_preprocess(file_path, form_type)
@@ -135,6 +148,7 @@ def fetch_data():
         df_pca, optimal_pc = pca(df_scaled)
         df_pca, optimal_k, cluster_count, df_original_questions_only = kmeans(df_pca, df_questions_only)
         df_cluster_summary = summarize_answer_per_cluster(df_original_questions_only, form_type)
+        upload_student_data(df_pca, uuid, form_type)
         svm_summary = svm_classification(df_pca, 'Cluster') 
         rf_summary = random_forest_classification(df_pca, 'Cluster')
         nn_summary = neural_network_classification(df_pca, 'Cluster')
@@ -149,7 +163,7 @@ def fetch_data():
 
 
         results = {
-            'id': id,
+            'id': uuid,
             'user': user,
             'type': form_type,
             'data_summary': {
@@ -170,7 +184,7 @@ def fetch_data():
         
         print("Results:", results)
         results_path = upload_results(results)
-        if not insert_result_record(id, record_name, user, form_type) or not results_path:
+        if not insert_result_record(uuid, record_name, user, form_type) or not results_path:
             print("Error: Failed to insert result record or get results_path")
             return jsonify({'message': 'Failed to insert result record'}), 500
 
@@ -182,4 +196,4 @@ def fetch_data():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=5000, debug=True)
