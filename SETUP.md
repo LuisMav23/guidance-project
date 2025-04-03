@@ -11,7 +11,7 @@ Before you begin, ensure you have the following software installed on your syste
 - [Python](https://www.python.org/downloads/release/python-3110/) (version 3.11 only)
 
 
-## Installation Steps
+## Installation and Running Steps
 
 ### 1. Clone or Download the Repository
 ```bash
@@ -23,20 +23,12 @@ git clone https://github.com/LuisMav23/guidance-project.git
 cd guidance-project
 ```
 
-### 3. Set up backend
+### 3. Run setup.ps1
 ```bash
-cd guidance-application
-python -m venv venv
-venv/scripts/activate
-pip intall -r requirements.txt
+./setup.ps1
 ```
 
-### 4. Set up frotend
-You must first run docker desktop
+### 4. Run run.ps1
 ```bash
-cd guidance-client
-docker build -t client .
-docker run -p 3000:3000 client
+./run.ps1
 ```
-
-
