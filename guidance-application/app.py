@@ -115,6 +115,21 @@ def update_student_cluster_by_name(uuid, name, form_type, cluster):
         return jsonify({'message': 'Student cluster updated successfully'}), 200
     else:
         return jsonify({'message': 'Student cluster update failed'}), 500
+    
+@app.route('/api/answer_summary', methods=['GET'])
+def get_answer_summary():
+    uuid = request.args.get('uuid')
+    form_type = request.args.get('form_type')
+    gender = request.args.get("gender", "all")
+    grade = request.args.get("grade", "all")
+    cluster = request.args.get("cluster", "all")
+    print("UUID:", uuid)
+    print("Form Type:", form_type)
+    print("Gender:", gender)
+    print("Grade:", grade)
+    print("Cluster:", cluster)
+    summary = summarize_answers(uuid, form_type, gender, grade, cluster)
+    return jsonify(summary), 200
 
 @app.route('/api/data', methods=['POST'])
 def fetch_data():
@@ -136,7 +151,6 @@ def fetch_data():
             return jsonify({'message': 'User not found'}), 400
 
         file_path = upload_file(file, uuid, form_type)
-        summary = summarize_answers(file_path)
 
         df, df_questions_only, df_scaled = load_data_and_preprocess(file_path, form_type)
         columns = df.columns.to_list()
@@ -147,8 +161,10 @@ def fetch_data():
 
         df_pca, optimal_pc = pca(df_scaled)
         df_pca, optimal_k, cluster_count, df_original_questions_only = kmeans(df_pca, df_questions_only)
-        df_cluster_summary = summarize_answer_per_cluster(df_original_questions_only, form_type)
+        
         upload_student_data(df_pca, uuid, form_type)
+        summary = summarize_answers(uuid, form_type, 'all', 'all', 'all')
+
         svm_summary = svm_classification(df_pca, 'Cluster') 
         rf_summary = random_forest_classification(df_pca, 'Cluster')
         nn_summary = neural_network_classification(df_pca, 'Cluster')
@@ -167,10 +183,7 @@ def fetch_data():
             'user': user,
             'type': form_type,
             'data_summary': {
-                'answers_summary': {
-                    'full': summary,
-                    'per_cluster': df_cluster_summary
-                },
+                'answers_summary': summary,
                 'pca_summary': {
                     'optimal_pc': optimal_pc
                 },

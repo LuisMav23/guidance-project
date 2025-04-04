@@ -92,9 +92,9 @@ export default function HomePage() {
                                 <CountCard key={cluster.name} title={cluster.name} count={cluster.count} color={cluster.color} />
                             ))}
                         </div>
-                        <div className="flex flex-col md:flex-row justify-starts items-center gap-4 h-96">
+                        <div className="flex flex-col md:flex-row justify-starts items-center gap-4 h-fit">
                             <RiskChart clusters={clusters} />
-                            <AnswerSummaryCard data={data.data_summary.answers_summary} type={data.type} clusters={clusters}/>
+                            <AnswerSummaryCard data={data.data_summary.answers_summary} uuid={data.id} type={data.type} clusters={clusters}/>
                         </div>
                         <StudentSummary uuid={data.id} form_type={data.type} number_of_clusters={clusters.length} />
                         {data.data_summary.classification_summary && (

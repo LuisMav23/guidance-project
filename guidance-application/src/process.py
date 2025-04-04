@@ -78,14 +78,32 @@ def upload_results(results):
         print(f"Error saving results: {e}")
         return None
 
-def summarize_answers(file_path):
+def summarize_answers(uuid, form_type, gender, grade, cluster):
+    file_path = os.path.join('student_data', form_type, f'{uuid}.csv')
     df = pd.read_csv(file_path)
     df = df.dropna(axis=0)
-    # for each column, create a dictionary with the count of each answer
+
+    if form_type == 'ASSI-C':
+        # Convert 'Never', 'Sometimes', 'Often' to numerical values
+        answer_map = {'Never': 0, 'Sometimes': 1, 'Often': 2}
+        for col in df.columns:
+            if col not in ['Gender', 'Grade', 'Name']:
+                df[col] = df[col].map(answer_map)
+
     summary = {}
+    # Filter the dataframe by gender and grade if they're not set to 'all'
+    if gender != 'all':
+        df = df[df['Gender'] == gender]
+    if grade != 'all':
+        df = df[df['Grade'] == int(grade)]
+    if cluster != 'all':
+        df = df[df['Cluster'] == int(cluster)]
+    print(df.head(1))
+        
     for column in df.columns:
-        if column != 'Name' and column != 'Grade':
+        if column not in ['Name', 'Grade', 'Gender']:
             summary[column] = df[column].value_counts().to_dict()
+    
     return summary
 
 def summarize_answer_per_cluster(df_clustered, form_type):
