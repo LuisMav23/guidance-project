@@ -10,7 +10,7 @@ import CONFIG from '@/config/config';
 import { useGlobalContext } from '@/providers/GlobalContext';
 import { Data } from '@/models/data';
 import { Cluster } from '@/models/cluster';
-import AnswerSummaryCard from '@/components/answerSummary';
+import AnswerSummaryChart from '@/components/answerSummary';
 import ClassificationSummary from '@/components/classificationSummary';
 import StudentSummary from '@/components/studentSummary';
 
@@ -94,7 +94,7 @@ export default function HomePage() {
                         </div>
                         <div className="flex flex-col md:flex-row justify-starts items-center gap-4 h-fit">
                             <RiskChart clusters={clusters} />
-                            <AnswerSummaryCard data={data.data_summary.answers_summary} uuid={data.id} type={data.type} clusters={clusters}/>
+                            <AnswerSummaryChart data={data.data_summary.answers_summary} uuid={data.id} type={data.type} clusters={clusters}/>
                         </div>
                         <StudentSummary uuid={data.id} form_type={data.type} number_of_clusters={clusters.length} />
                         {data.data_summary.classification_summary && (

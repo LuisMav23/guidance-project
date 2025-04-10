@@ -112,7 +112,7 @@ const Sidebar: React.FC<SidebarProps> = ({ router }) => {
                         <li className="mb-2">
                             <a
                                 onClick={() => {
-                                    router.push('/login');
+                                    router.push('/');
                                     setUser(defaultUser);
                                     toggleSidebar();
                                 }}

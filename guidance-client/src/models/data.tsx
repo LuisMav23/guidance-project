@@ -1,6 +1,3 @@
-import { AnswerSummary } from "./answerSummary";
-
-
 export interface ClassificationReport {
     precision: number;
     recall: number;
@@ -20,7 +17,7 @@ export interface Data {
     user: string;
     type: string;
     data_summary: {
-        answers_summary: AnswerSummary;
+        answers_summary: Record<string, any>;
         cluster_summary: {
             optimal_k: number;
             cluster_count: object;

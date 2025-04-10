@@ -20,7 +20,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               if (storedUser) {
                 setUser(JSON.parse(storedUser));
               } else{
-                router.push('/login')
+                router.push('/')
               }
             }
     }, [])
